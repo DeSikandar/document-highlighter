@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    
+    <style>
+        #pdf-container {
+          width: 100%;
+          height: 600px;
+          position: relative;
+        }
+    
+        .highlight {
+          background-color: yellow;
+          position: absolute;
+        }
+      </style>
+</head>
+<body>
+    <pre>
+    {{highlighted_document|safe}}
+</pre>
+</body>
+</html>
