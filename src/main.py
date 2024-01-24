@@ -18,8 +18,12 @@ def index():
 def get_heigh_lighted():
     pdf_file = request.files['pdfFile']
     document_text = extract_text_from_pdf(pdf_file)
+    patientAge = request.form['patientAge']
+    patientName = request.form['patientName']
     doc = nlp(document_text)
-    extracted_entities = [ent.text for ent in doc.ents]
+    #disable the nlp to get the entity for the getting the custom input 
+    # extracted_entities = [ent.text for ent in doc.ents]
+    extracted_entities = [patientAge,patientName]
     # Highlight extracted entities
     highlighted_document = highlight_text(document_text, extracted_entities)
     return render_template('result.html', highlighted_document=highlighted_document)
