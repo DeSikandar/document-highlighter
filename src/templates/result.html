@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
     
     <style>
         #pdf-container {
@@ -16,11 +18,107 @@
           background-color: yellow;
           position: absolute;
         }
+        html, body {margin:0}
+#c {border:1px solid}
+
+        #list, li:hover {
+          color: 'red'
+        }
       </style>
 </head>
 <body>
-    <pre>
-    {{highlighted_document|safe}}
-</pre>
+  <div class ="container mt-5">
+    <div class="row">
+      <div class ="col-4">
+        <p class="h3">Extracted Infomartion:</p>
+        <ul class="list-group" id="list">
+       {%for info in extract_info%}
+       <li class="list-group-item list-group-item-action" data-point="{{info['highlight_coordinate']}}">{{info['key']}} : {{info['value']}}</li>
+          {%endfor%}
+        </ul>
+      </div>
+      <div class="col-6">
+        <p class="h3"> Highlighted PDF:</p>
+        <div id="canvas-id">
+        </div>
+      </div>
+   
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+<script src="https://mozilla.github.io/pdf.js/build/pdf.mjs" type="module"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+<script type="module">
+  // If absolute URL from the remote server is provided, configure the CORS
+  // header on that server.
+  var url = 'static/original.pdf';
+
+  // Loaded via <script> tag, create shortcut to access PDF.js exports.
+  var { pdfjsLib } = globalThis;
+
+  // The workerSrc property shall be specified.
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.mjs';
+function initPdfjs(pdfUrl){
+
+
+  // Asynchronous download of PDF
+  var loadingTask = pdfjsLib.getDocument(pdfUrl);
+  loadingTask.promise.then(function(pdf) {
+
+    // Fetch the first page
+    var pageNumber = 1;
+    pdf.getPage(pageNumber).then(function(page) {
+
+      var scale = 1.2;
+      var viewport = page.getViewport({scale: scale});
+      $("#canvas-id").html("");
+      $("#canvas-id").html("<canvas id='the-canvas'></canvas>");
+      // Prepare canvas using PDF page dimensions
+      var canvas = document.getElementById('the-canvas');
+      var context = canvas.getContext('2d');
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      if (context) {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.beginPath();
+    }
+
+      // Render PDF page into canvas context
+      var renderContext = {
+        canvasContext: context,
+        viewport: viewport
+      };
+      var renderTask = page.render(renderContext);
+      renderTask.promise.then(function () {
+      });
+    });
+  }, function (reason) {
+    // PDF loading error
+    console.error(reason);
+  });
+}
+
+initPdfjs(url)
+
+
+$(document).ready(function(){
+  $("#list li").on("mouseover", function(){
+      var dataId = $(this).attr("data-point");
+      
+
+      if (dataId){
+        $.post('get-highlight',{data:dataId}).then(res=>{
+
+          initPdfjs('static/highlight.pdf')
+        })
+      }
+      
+  });
+});
+
+</script>
 </body>
 </html>

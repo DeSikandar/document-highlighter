@@ -7,6 +7,11 @@ name = "pypi"
 flask = "*"
 spacy = "*"
 pypdf2 = "*"
+pdfplumber = "*"
+pymupdf = "*"
+pandas = "*"
+pyarrow = "*"
+flask-cors = "*"
 
 [dev-packages]
 

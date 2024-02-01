@@ -3,11 +3,16 @@ import spacy
 import PyPDF2
 import re
 import base64
+import ast
+from module import parse_pdf,save_highlight_pdf
+import os
+from flask_cors import CORS
 
 
 app = Flask(__name__)
+CORS(app)
 
-nlp = spacy.load("en_core_web_sm")
+# nlp = spacy.load("en_core_web_sm")
 
 
 @app.route('/')
@@ -17,16 +22,16 @@ def index():
 @app.route('/highlight',methods=['POST'])
 def get_heigh_lighted():
     pdf_file = request.files['pdfFile']
-    document_text = extract_text_from_pdf(pdf_file)
-    patientAge = request.form['patientAge']
-    patientName = request.form['patientName']
-    doc = nlp(document_text)
-    #disable the nlp to get the entity for the getting the custom input 
-    # extracted_entities = [ent.text for ent in doc.ents]
-    extracted_entities = [patientAge,patientName]
-    # Highlight extracted entities
-    highlighted_document = highlight_text(document_text, extracted_entities)
-    return render_template('result.html', highlighted_document=highlighted_document)
+    
+    
+    ext = parse_pdf(pdf_file)
+    out_put_file = os.path.join(app.root_path, 'static', 'highlight.pdf')
+    
+    pdf_file.stream.seek(0)
+    original_file = os.path.join(app.root_path,'static','original.pdf')
+    pdf_file.save(original_file)
+    # save_highlight_pdf(pdf_file=pdf_file.stream,output_file=out_put_file,page_num=0,extracted_info=ext,type=pdf_file.content_type)
+    return render_template('result.html',extract_info = ext,original_file=original_file)
     
     
 def extract_text_from_pdf(pdf_file):
@@ -38,6 +43,16 @@ def extract_text_from_pdf(pdf_file):
         text += page.extract_text()
 
     return text
+
+@app.route('/get-highlight',methods=['POST'])
+def get_high_lighted():
+    data = request.form['data']
+    dict = ast.literal_eval(data)
+    original_file = os.path.join(app.root_path,'static','original.pdf')
+    out_put_file = os.path.join(app.root_path, 'static', 'highlight.pdf')
+    print(dict)
+    save_highlight_pdf(pdf_file=original_file,output_file=out_put_file,page_num=0,extracted_info=dict)
+    return 'done'
 
 def highlight_text(document, entities):
     highlighted_document = document
